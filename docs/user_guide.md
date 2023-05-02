@@ -40,7 +40,9 @@ This will generate two figures:
 2. `{prefix}.read_counts.png` - a heatmap of the methylated / unmethylated read counts for all loci, each haplotype is counted once in the image
 
 Examples of each are below:
+
 ![hapscat.png](./example/HG001.hapscat.png)
+
 ![read_counts.png](./example/HG001.read_counts.png)
 
 ## Overlay phase blocks
