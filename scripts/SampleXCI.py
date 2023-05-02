@@ -240,7 +240,7 @@ def calculateStatistics(sample_cpgs):
             'ratio2' : float(1-w_lstsq_result[0]),
             'error' : float(w_lstsq_result[1])
         },
-        'is_skewed' : str(is_skewed)
+        'is_skewed' : bool(is_skewed)
     }
 
     # also save the raw values for visualizations
@@ -452,7 +452,7 @@ if __name__ == '__main__':
 
     # optional arguments
     p.add_argument('-i', '--images', dest='images_enabled', action='store_true', default=False, help='enable visualization generation (default: False)')
-    p.add_argument('--sample-name', dest='sample_name', default='unspecified', help='set sample name for visualizaiton (default: "unspecified")')
+    p.add_argument('--sample-name', dest='sample_name', default='unspecified', help='set sample name for visualization (default: "unspecified")')
     p.add_argument('--phase-blocks', dest='phase_blocks', default=None, help='phase blocks for grouping observations (default: None)')
 
     # required args
