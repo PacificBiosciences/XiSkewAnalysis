@@ -26,5 +26,16 @@ The following IGV screenshot shows an example chrX region with the informative X
 
 ![hapscat.png](./image/cpg_profile_igv_example.png)
 
-## Comparing a dataset to the XCI-associated CpG profile
-TODO
+## Data XCI skew calculation
+Given the XCI-associated CpG profile and the CpG pileup for a dataset, the final step calculates XCI skew by extracting all the loci from the pileup that are in the XCI-associated CpG profile and analyzing the relative methylation ratios in haplotype 1 and 2.
+Each CpG is extracted and the read counts are converted to methylation ratios (e.g., methylated_count / total_count) for both haplotype 1 and 2.
+Then, the collection is analyzed together to form a variety of statistic that are described in our [user guide outputs](./user_guide.md#output-files).
+In general, we focus on two types of metrics: ratio metrics that define where the likely skew ratios are and delta metrics that describe the difference between the two ratios.
+In an unskewed sample, we expect the ratios to be roughly equal (i.e., 50 : 50) which would make the average delta 0.0.
+In practice, we find that a delta of 0.2 (or ratio of 40:60) typically corresponds to a sample with a skewed X-inactivation profile.
+Delta values less than 0.2 may also be skewed, but it is difficult to distinguish that low level of skewing from background.
+
+In the figure below, the sample ratios are marked with a "+" symbol and the delta value (0.50) is shown on the top of the figure.
+This sample has a skewing ratio of approximately 25:75, indicating that one chrX is selected for inactivation roughly 3x more frequently than the other chrX.
+
+![](./example/HG001.hapscat.png)
