@@ -3,6 +3,10 @@ The primary function of the `SampleXCI.py` script is to detect and quantify X-Ch
 At a high level, the tool iterates over a selection of CpGs associated with XCI and extracts the number of read mappings that are methylated or unmethylated as well as the haplotype (h1 or h2) that it is on.
 These values are then used as observations to calculate whether methylation status is skewed towards a haplotype.
 
+## Generating a haplotagged BAM
+We recommend mapping HiFi reads using [pbmm2](https://github.com/PacificBiosciences/pbmm2), calling variants with [DeepVariant](https://github.com/google/deepvariant), and then generating a phased VCF and haplotagged BAM with [HiPhase](https://github.com/PacificBiosciences/HiPhase).
+The haplotagged BAM will be used as the primary input for generating the CpG profile for a dataset.
+
 ## Extracting methylation status
 Extracting the methylation status of reads at each locus is a pre-processing step performed by [pb-CpG-tools](https://github.com/PacificBiosciences/pb-CpG-tools).
 In brief, this tool iterates over all of the reads in a HiFi dataset and categorizes each CpG in the read as methylated or unmethylated. 

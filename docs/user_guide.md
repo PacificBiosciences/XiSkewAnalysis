@@ -5,10 +5,12 @@ Table of contents:
 * [Common uses cases](#common-use-cases)
 * [Supported upstream processes](#supported-upstream-processes)
 * [Output files](#output-files)
+* [FAQ](#faq)
 
 # Quickstart
-Prior to running XiSkewAnalysis, [pb-CpG-tools](https://github.com/PacificBiosciences/pb-CpG-tools) must be run on a haplotagged BAM file to generate CpG pileup files.
-See [Supported upstream processes](#supported-upstream-processes) for more details.
+Prior to running XiSkewAnalysis, [pb-CpG-tools](https://github.com/PacificBiosciences/pb-CpG-tools) must be run in "count" pileup mode on a haplotagged BAM file to generate CpG pileup files.
+To generate the haplotagged BAM file, we recommend mapping HiFi reads using [pbmm2](https://github.com/PacificBiosciences/pbmm2), calling variants with [DeepVariant](https://github.com/google/deepvariant), and then generating a phased VCF and haplotagged BAM with [HiPhase](https://github.com/PacificBiosciences/HiPhase).
+See [Supported upstream processes](#supported-upstream-processes) for more details on running pb-CpG-tools.
 
 Once the pileups are generated, this command will generate the XCI results:
 ```bash
@@ -92,3 +94,12 @@ Details on how each metrics is calculated are described here:
 * `linalg_result` - The estimated skew ratios (`ratio1` and `ratio2`, which sum to 1.0) and error term (`error`) and for the dataset. These are derived by applying a linear algebra equation to the median skew ratios across all loci.
 * `lstsq_result` - Same as `linalg_result`, but using a least-squares solution that factors in all loci, not just the median values.
 * `w_lstsq_result` - Same as `lstsq_result`, but using a weighted least-squares solution based on read depth.
+
+# FAQ
+## Will this work on samples with sex chromosomes other than XX?
+The tool will technically run on samples of different genetic sex without crashing, but most metrics are generated under the assumption of XX and will likely be meaningless if that assumption is broken.
+For example, running this on the typical XY male will likely be uninformative as the loci should all be unmethylated.
+However, certain scenarios that are close to XX, such as XXY, may still produce informative results.
+For all sample types, the visualizations should produce correct results (other than any overlaid statistic values) which may also be helpful.
+We note that we have not tested the scripts on karyotypes other than typical XX females and XY males.
+If you have a sample with atypical karyotype and want to run this software on it, contact us and we may be able to alter the software for your use case.
