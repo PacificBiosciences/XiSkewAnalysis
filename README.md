@@ -1,5 +1,5 @@
 # XiSkewAnalysis
-XiSkewAnalysis is a repo containing scripts and data files to support analysis of [X-Chromosome Inactivation (XCI)](https://en.wikipedia.org/wiki/X-inactivation) skewing of HiFi datasets from XX samples.
+XiSkewAnalysis is a repo containing scripts and data files to support analysis of [X-Chromosome Inactivation (XCI) skewing](https://en.wikipedia.org/wiki/Skewed_X-inactivation) of HiFi datasets from XX samples.
 
 ## Early release warning
 Please note that XiSkewAnalysis is still in early development. 
