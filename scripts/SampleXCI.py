@@ -22,8 +22,8 @@ def loadSampleXciCpgs(prefix, xci_bed_fn):
     file_loads = {
         # we do not need 'combined' key anymore
         # 'combined' : f'{prefix}.combined.bed.gz',
-        'hap1' : f'{prefix}.hap1.bed.gz',
-        'hap2' : f'{prefix}.hap2.bed.gz'
+        'hap1' : f'{prefix}.hap1.bed',
+        'hap2' : f'{prefix}.hap2.bed'
     }
     key_order = ['hap1', 'hap2']
 
