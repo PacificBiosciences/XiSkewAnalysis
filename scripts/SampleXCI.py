@@ -151,97 +151,100 @@ def calculateStatistics(sample_cpgs):
     h1_vals = np.array(h1_vals)
     h2_vals = np.array(h2_vals)
 
-    # figure out the max and min of each h1/h2 pair
-    hap_stack = np.vstack([h1_vals, h2_vals])
-    argmin_hap = np.argmin(hap_stack, axis=0)
-    argmax_hap = 1 - argmin_hap
-    
-    # build max/min haps
-    min_hap = hap_stack[argmin_hap, np.arange(hap_stack.shape[1])]
-    max_hap = hap_stack[argmax_hap, np.arange(hap_stack.shape[1])]
-    
-    # we now have ordered points such that we can do cluster stats
-    cluster_points = np.vstack([min_hap, max_hap]).transpose()
-    
-    # weights are now assigned based on the actual observed min or max methylation prob
-    rc_stack = np.vstack([h1_readcount, h2_readcount])
-    min_weights = rc_stack[argmin_hap, np.arange(hap_stack.shape[1])]
-    max_weights = rc_stack[argmax_hap, np.arange(hap_stack.shape[1])]
-    
-    # min_weights then max_weights to match construction of cluster_points
-    rc_weights = np.vstack([min_weights, max_weights]).transpose()
-    
-    # now all the summary stats
-    cluster_weighted_means = np.average(cluster_points, weights=rc_weights, axis=0)
-    cluster_means = np.mean(cluster_points, axis=0)
-    cluster_medians = np.median(cluster_points, axis=0)
-    
-    # statistical calculations
-    combined_weight = np.sum(rc_weights, axis=1)
-    delta_scores = max_hap - min_hap
-    delta_mean = np.mean(delta_scores)
-    weighted_mean = np.average(delta_scores, weights=combined_weight)
-    delta_median = np.median(delta_scores)
-    
-    # lin regression mode:
-    # logical form            ==>  standard linear alg. form for solving for p and e
-    # frac + e = obs_low      ==>  frac  + e = obs_low
-    # 1 - frac + e = obs_high ==>  -frac + e = obs_high - 1
-    # this stores the constants in front of the unknown variable on the left-hand side
-    systemLHS = [[1, 1],
-                 [-1, 1]]
-    
-    # this stores the calculate constant on the right-hand side based on the observed average allelic ratios
-    # systemRHS = [np.mean(min_hap), np.mean(max_hap) - 1]
-    systemRHS = [np.median(min_hap), np.median(max_hap) - 1]
-    
-    # calculate and return frac, e
-    linalg_result = np.linalg.solve(systemLHS, systemRHS)
+    if len(h1_vals) > 0:
+        # figure out the max and min of each h1/h2 pair
+        hap_stack = np.vstack([h1_vals, h2_vals])
+        argmin_hap = np.argmin(hap_stack, axis=0)
+        argmax_hap = 1 - argmin_hap
+        
+        # build max/min haps
+        min_hap = hap_stack[argmin_hap, np.arange(hap_stack.shape[1])]
+        max_hap = hap_stack[argmax_hap, np.arange(hap_stack.shape[1])]
+        
+        # we now have ordered points such that we can do cluster stats
+        cluster_points = np.vstack([min_hap, max_hap]).transpose()
+        
+        # weights are now assigned based on the actual observed min or max methylation prob
+        rc_stack = np.vstack([h1_readcount, h2_readcount])
+        min_weights = rc_stack[argmin_hap, np.arange(hap_stack.shape[1])]
+        max_weights = rc_stack[argmax_hap, np.arange(hap_stack.shape[1])]
+        
+        # min_weights then max_weights to match construction of cluster_points
+        rc_weights = np.vstack([min_weights, max_weights]).transpose()
+        
+        # now all the summary stats
+        cluster_weighted_means = np.average(cluster_points, weights=rc_weights, axis=0)
+        cluster_means = np.mean(cluster_points, axis=0)
+        cluster_medians = np.median(cluster_points, axis=0)
+        
+        # statistical calculations
+        combined_weight = np.sum(rc_weights, axis=1)
+        delta_scores = max_hap - min_hap
+        delta_mean = np.mean(delta_scores)
+        weighted_mean = np.average(delta_scores, weights=combined_weight)
+        delta_median = np.median(delta_scores)
+        
+        # lin regression mode:
+        # logical form            ==>  standard linear alg. form for solving for p and e
+        # frac + e = obs_low      ==>  frac  + e = obs_low
+        # 1 - frac + e = obs_high ==>  -frac + e = obs_high - 1
+        # this stores the constants in front of the unknown variable on the left-hand side
+        systemLHS = [[1, 1],
+                    [-1, 1]]
+        
+        # this stores the calculate constant on the right-hand side based on the observed average allelic ratios
+        # systemRHS = [np.mean(min_hap), np.mean(max_hap) - 1]
+        systemRHS = [np.median(min_hap), np.median(max_hap) - 1]
+        
+        # calculate and return frac, e
+        linalg_result = np.linalg.solve(systemLHS, systemRHS)
 
-    # we can also do this for all of our haps
-    systemLHS = np.array([[1, 1]] * len(min_hap) + [[-1, 1]] * len(max_hap))
-    systemRHS = np.hstack([min_hap, (max_hap - 1)])
-    lstsq_result = np.linalg.lstsq(systemLHS, systemRHS, rcond=None)[0]
+        # we can also do this for all of our haps
+        systemLHS = np.array([[1, 1]] * len(min_hap) + [[-1, 1]] * len(max_hap))
+        systemRHS = np.hstack([min_hap, (max_hap - 1)])
+        lstsq_result = np.linalg.lstsq(systemLHS, systemRHS, rcond=None)[0]
 
-    # weighted form, via https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
-    flat_weights = np.hstack([min_weights, max_weights])
-    w_LHS = systemLHS * np.sqrt(flat_weights[:, np.newaxis])
-    w_RHS = systemRHS * np.sqrt(flat_weights)
-    w_lstsq_result = np.linalg.lstsq(w_LHS, w_RHS, rcond=None)[0]
+        # weighted form, via https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix
+        flat_weights = np.hstack([min_weights, max_weights])
+        w_LHS = systemLHS * np.sqrt(flat_weights[:, np.newaxis])
+        w_RHS = systemRHS * np.sqrt(flat_weights)
+        w_lstsq_result = np.linalg.lstsq(w_LHS, w_RHS, rcond=None)[0]
 
-    skew_threshold = 0.20
-    is_skewed = delta_median > skew_threshold
+        skew_threshold = 0.20
+        is_skewed = delta_median > skew_threshold
 
-    # save everything into a pile of statistics
-    xci_stats = {
-        'delta': {
-            'mean' : float(delta_mean),
-            'weighted_mean' : float(weighted_mean),
-            'median' : float(delta_median)
-        },
-        'cluster_center' : {
-            'mean' : list(cluster_means),
-            'weighted_mean' : list(cluster_weighted_means),
-            'median' : list(cluster_medians),
-        },
-        'skew_threshold' : skew_threshold,
-        'linalg_result' : {
-            'ratio1' : float(linalg_result[0]),
-            'ratio2' : float(1-linalg_result[0]),
-            'error' : float(linalg_result[1])
-        },
-        'lstsq_result' : {
-            'ratio1' : float(lstsq_result[0]),
-            'ratio2' : float(1-lstsq_result[0]),
-            'error' : float(lstsq_result[1])
-        },
-        'w_lstsq_result' : {
-            'ratio1' : float(w_lstsq_result[0]),
-            'ratio2' : float(1-w_lstsq_result[0]),
-            'error' : float(w_lstsq_result[1])
-        },
-        'is_skewed' : bool(is_skewed)
-    }
+        # save everything into a pile of statistics
+        xci_stats = {
+            'delta': {
+                'mean' : float(delta_mean),
+                'weighted_mean' : float(weighted_mean),
+                'median' : float(delta_median)
+            },
+            'cluster_center' : {
+                'mean' : list(cluster_means),
+                'weighted_mean' : list(cluster_weighted_means),
+                'median' : list(cluster_medians),
+            },
+            'skew_threshold' : skew_threshold,
+            'linalg_result' : {
+                'ratio1' : float(linalg_result[0]),
+                'ratio2' : float(1-linalg_result[0]),
+                'error' : float(linalg_result[1])
+            },
+            'lstsq_result' : {
+                'ratio1' : float(lstsq_result[0]),
+                'ratio2' : float(1-lstsq_result[0]),
+                'error' : float(lstsq_result[1])
+            },
+            'w_lstsq_result' : {
+                'ratio1' : float(w_lstsq_result[0]),
+                'ratio2' : float(1-w_lstsq_result[0]),
+                'error' : float(w_lstsq_result[1])
+            },
+            'is_skewed' : bool(is_skewed)
+        }
+    else:
+        xci_stats = {}
 
     # also save the raw values for visualizations
     data_arrays = {
@@ -273,6 +276,10 @@ def generateXciImages(xci_stats, xci_data, output_prefix, sample_name):
     # gather h1 and h2 into some arrays
     h1_vals = xci_data['h1_vals']
     h2_vals = xci_data['h2_vals']
+    if len(h1_vals) == 0:
+        print('Skipping image generation, no data points exist')
+        return
+
     h1_unmethyl_reads = xci_data['h1_unmethyl_reads']
     h1_methyl_reads = xci_data['h1_methyl_reads']
     h2_unmethyl_reads = xci_data['h2_unmethyl_reads']
